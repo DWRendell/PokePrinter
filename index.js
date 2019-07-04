@@ -2,14 +2,32 @@ const request = require("request-promise")
 const terminalImage = require("terminal-image")
 
 async function printPokemonSprite(pokemonId) {
-  let responseBody = await request(`https://pokeapi.co/api/v2/pokemon/${pokemonId}/`)
-  let pokemon = JSON.parse(responseBody)
-  let spriteResponse = await request({
-    uri: pokemon.sprites.front_default,
-    encoding: null
-  })
-  let imageString = await terminalImage.buffer(spriteResponse)
-  console.log(pokemon.name)
+  let spriteUrl;
+  try {
+    let responseBody = await request(`https://pokeapi.co/api/v2/pokemon/${pokemonId}/`)
+    let pokemon = JSON.parse(responseBody)
+    spriteUrl = pokemon.sprites.front_default
+  } catch (error) {
+    console.log("Error finding Pokemon Sprite URL: ", error)
+  }
+
+  let spriteResponse
+  try {
+    spriteResponse = await request({
+      uri: spriteUrl,
+      encoding: null
+    })
+  } catch (error) {
+    console.log("Error downloading pokemon image: ", error)
+  }
+
+  let imageString
+  try {
+    imageString = await terminalImage.buffer(spriteResponse)
+  } catch (error) {
+    console.log("Error formatting image: ", error)
+  }
+
   console.log(imageString)
 }
 
